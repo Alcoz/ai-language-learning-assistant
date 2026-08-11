@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from conversation_engine.api_connection.ollama_connection import run_ollama_query 
+from conversation_engine.api_connection.ollama_connection import generate_answer 
 
 class Query(BaseModel):
     messages: str
@@ -10,7 +11,7 @@ def run_server():
     app = FastAPI()
 
     @app.post("/query")
-    def query(query_content: Query):
+    async def query(query_content: Query):
 
         with open("conversation-engine/src/conversation_engine/instruction.txt") as instruction_file:
             instruction = instruction_file.read()
@@ -22,11 +23,14 @@ def run_server():
             history=query_content.messages
         )
 
-        llm_response = run_ollama_query(
-            model="qwen3.5",
-            messages=prompt
-        )
+        print(prompt)
 
-        return {"response" : llm_response}
+        return StreamingResponse(
+            generate_answer(
+                model="qwen3.5:4b",
+                messages=prompt
+            ),
+            media_type="text/plain",
+        )
 
     return app

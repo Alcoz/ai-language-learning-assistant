@@ -23,14 +23,21 @@ if prompt := st.chat_input("Come stai ?"):
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
+        full_response = ""
 
-        r = requests.post(
+        response = requests.post(
             BACK_URL, 
-            json={'messages': prompt}
+            json={'messages': prompt},
+            stream=True
         )
-        assistant_response = r.json()["response"]
 
-        message_placeholder.markdown(assistant_response)
+        for chunk in response.iter_content(
+            chunk_size=None,
+            decode_unicode=True,
+        ):
+            if chunk:
+                full_response += chunk
+                message_placeholder.markdown(full_response)
 
     # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+    st.session_state.messages.append({"role": "assistant", "content": full_response})

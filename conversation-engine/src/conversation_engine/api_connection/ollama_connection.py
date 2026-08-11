@@ -1,14 +1,22 @@
 from ollama import generate
-from ollama import GenerateResponse
+from ollama import AsyncClient
 
-def run_ollama_query(
+client = AsyncClient(host="http://localhost:11434")
+
+async def generate_answer(
     model: str,
     messages: str,
-
 ):
-    response: GenerateResponse = generate(
+    response = await client.generate(
         model=model,
-        prompt=messages
-    ).response
+        prompt=messages,
+        stream=True,
+        think=False
+        
+    )
 
-    return response
+    async for chunk in response:
+        content = chunk["response"]
+
+        if content:
+            yield content
