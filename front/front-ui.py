@@ -34,5 +34,3 @@ if prompt := st.chat_input("Come stai ?"):
 
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": assistant_response})
-
-
