@@ -6,13 +6,15 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "conversation-engine",
-    "fastapi[standard]>=0.141.1",
-    "ollama>=0.6.2",
-    "streamlit>=1.59.2",
+    "front",
 ]
 
 [tool.uv.workspace]
-members = ["conversation-engine"]
+members = [
+    "conversation-engine",
+    "front",
+]
 
 [tool.uv.sources]
 conversation-engine = { workspace = true }
+front = { workspace = true }

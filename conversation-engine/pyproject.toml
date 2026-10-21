@@ -7,7 +7,16 @@ authors = [
     { name = "Baptiste Darnala", email = "darnala.b@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "av<17",
+    "fastapi>=0.158.1",
+    "faster-whisper>=1.2.1",
+    "kokoro>=0.9.4",
+    "ollama>=0.6.3",
+    "python-multipart>=0.0.32",
+    "soundfile>=0.14.0",
+    "uvicorn>=0.54.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.10.12,<0.11.0"]
