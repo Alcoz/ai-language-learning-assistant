@@ -1,4 +1,5 @@
 import os
+import uuid
 from collections.abc import Iterator
 
 import requests
@@ -16,10 +17,10 @@ def format_history(messages: list[dict]) -> str:
     )
 
 
-def stream_answer(back_url: str, messages: list[dict]) -> Iterator[str]:
+def stream_answer(back_url: str, messages: list[dict], session_id: str) -> Iterator[str]:
     with requests.post(
         f"{back_url.rstrip('/')}/query",
-        json={"messages": format_history(messages)},
+        json={"messages": format_history(messages), "session_id": session_id},
         stream=True,
         timeout=(5, 300),
     ) as response:
@@ -55,7 +56,7 @@ def text_to_speech(back_url: str, text: str) -> bytes:
 def ask_teacher(back_url: str) -> None:
     with st.chat_message("assistant"):
         try:
-            answer = st.write_stream(stream_answer(back_url, st.session_state.messages))
+            answer = st.write_stream(stream_answer(back_url, st.session_state.messages, st.session_state.session_id))
         except requests.RequestException as error:
             st.error(f"Impossible de joindre le conversation-engine ({back_url}) : {error}")
             return
@@ -78,10 +79,13 @@ with st.sidebar:
     back_url = st.text_input("URL du conversation-engine", value=DEFAULT_BACK_URL)
     if st.button("Nouvelle conversation", use_container_width=True):
         st.session_state.messages = []
+        st.session_state.session_id = uuid.uuid4().hex
         st.rerun()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "session_id" not in st.session_state:
+    st.session_state.session_id = uuid.uuid4().hex
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):

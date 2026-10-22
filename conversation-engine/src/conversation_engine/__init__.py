@@ -13,6 +13,7 @@ KOKORO_VOICE = "if_sara"
 
 class Query(BaseModel):
     messages: str
+    session_id: str | None = None
 
 class Speech(BaseModel):
     text: str
@@ -33,17 +34,15 @@ def run_server():
             history=query_content.messages
         )
 
-        print(prompt)
-
         return StreamingResponse(
             generate_answer(
                 model="qwen3.5:4b",
-                messages=prompt
+                messages=prompt,
+                session_id=query_content.session_id,
             ),
             media_type="text/plain",
         )
 
-    # Sync endpoints: FastAPI runs them in a threadpool, so the models don't block the event loop
     @app.post("/stt")
     def speech_to_text(audio: UploadFile):
         return {"text": transcribe(audio.file, language=WHISPER_LANGUAGE)}
