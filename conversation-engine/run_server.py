@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+# Must run before importing conversation_engine: the Langfuse client reads its keys at import
+load_dotenv()
+
 import uvicorn
 from conversation_engine import run_server
 

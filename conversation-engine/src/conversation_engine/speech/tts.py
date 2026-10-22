@@ -1,10 +1,21 @@
 import io
 import re
+import warnings
 from functools import cache
 
 import numpy as np
 import soundfile as sf
 from kokoro import KPipeline
+
+# Harmless warnings emitted by Kokoro's model code when the pipeline is built
+warnings.filterwarnings(
+    "ignore", message=r".*weight_norm.*is deprecated", category=FutureWarning
+)
+warnings.filterwarnings(
+    "ignore",
+    message="dropout option adds dropout after all but last recurrent layer",
+    category=UserWarning,
+)
 
 SAMPLE_RATE = 24000
 # Markdown symbols the teacher may use, which should not be read aloud
