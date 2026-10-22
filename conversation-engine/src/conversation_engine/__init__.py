@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
@@ -11,33 +13,53 @@ WHISPER_LANGUAGE = "it"
 KOKORO_LANG_CODE = "i"
 KOKORO_VOICE = "if_sara"
 
+
+class Message(BaseModel):
+    """A single chat turn sent by the front."""
+
+    role: Literal["user", "assistant"]
+    content: str
+
+
 class Query(BaseModel):
-    messages: str
+    """Body of a /query request: the conversation history and its Langfuse session."""
+
+    messages: list[Message]
     session_id: str | None = None
 
+
 class Speech(BaseModel):
+    """Body of a /tts request: the text to read aloud."""
+
     text: str
 
+
 def run_server():
+    """Build the FastAPI app exposing the chat, speech-to-text and text-to-speech routes."""
     app = FastAPI()
 
-    with open("conversation-engine/src/conversation_engine/instruction.txt") as instruction_file:
+    with open(
+        "conversation-engine/src/conversation_engine/instruction.txt"
+    ) as instruction_file:
         instructions = instruction_file.read()
 
     @app.post("/query")
     async def query(query_content: Query):
 
-        prompt = instructions.format(
+        system_prompt = instructions.format(
             mother_tongue="french",
             language="italian",
             language_level="A1",
-            history=query_content.messages
         )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            *(message.model_dump() for message in query_content.messages),
+        ]
 
         return StreamingResponse(
             generate_answer(
                 model="qwen3.5:4b",
-                messages=prompt,
+                messages=messages,
                 session_id=query_content.session_id,
             ),
             media_type="text/plain",

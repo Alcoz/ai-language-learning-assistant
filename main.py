@@ -1,4 +1,5 @@
 def main():
+    """Print a greeting."""
     print("Hello from ai-language-learning-assistant!")
 
 

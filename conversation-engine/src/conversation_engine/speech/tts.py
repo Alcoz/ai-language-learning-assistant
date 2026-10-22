@@ -24,6 +24,7 @@ MARKDOWN_SYMBOLS = re.compile(r"[*_#`>~]")
 
 @cache
 def get_pipeline(lang_code: str) -> KPipeline:
+    """Load the Kokoro pipeline once per language and reuse it."""
     return KPipeline(lang_code=lang_code, repo_id="hexgrad/Kokoro-82M")
 
 
@@ -32,6 +33,7 @@ def synthesize(
     lang_code: str,
     voice: str,
 ) -> bytes:
+    """Convert text to WAV audio, without reading Markdown symbols aloud."""
     text = MARKDOWN_SYMBOLS.sub("", text)
     chunks = [audio for _, _, audio in get_pipeline(lang_code)(text, voice=voice)]
 

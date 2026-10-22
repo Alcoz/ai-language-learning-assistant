@@ -18,3 +18,35 @@ members = [
 [tool.uv.sources]
 conversation-engine = { workspace = true }
 front = { workspace = true }
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+    "SIM",
+    "D",
+]
+ignore = [
+    "E501",
+    "D203",
+    "D213",
+    "D100",
+    "D104",
+]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.7.0",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"conversation-engine/run_server.py" = ["E402"]
