@@ -4,7 +4,10 @@ from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
-from conversation_engine.api_connection.ollama_connection import generate_answer
+from conversation_engine.api_connection.ollama_connection import (
+    generate_answer,
+    get_instructions_prompt,
+)
 from conversation_engine.speech.stt import transcribe
 from conversation_engine.speech.tts import synthesize
 
@@ -38,15 +41,10 @@ def run_server():
     """Build the FastAPI app exposing the chat, speech-to-text and text-to-speech routes."""
     app = FastAPI()
 
-    with open(
-        "conversation-engine/src/conversation_engine/instruction.txt"
-    ) as instruction_file:
-        instructions = instruction_file.read()
-
     @app.post("/query")
     async def query(query_content: Query):
-
-        system_prompt = instructions.format(
+        instructions_prompt = get_instructions_prompt()
+        system_prompt = instructions_prompt.compile(
             mother_tongue="french",
             language="italian",
             language_level="A1",
@@ -61,6 +59,7 @@ def run_server():
                 model="qwen3.5:4b",
                 messages=messages,
                 session_id=query_content.session_id,
+                prompt=instructions_prompt,
             ),
             media_type="text/plain",
         )

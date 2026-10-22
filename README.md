@@ -28,7 +28,7 @@ The repository is a `uv` workspace with two packages:
   - `/tts`: reads a text aloud and returns a WAV file.
 - **`front`**: the chat interface. It keeps the conversation history and calls the API.
 
-The teacher's instructions are in [instruction.txt](conversation-engine/src/conversation_engine/instruction.txt).
+The teacher's instructions are versioned in Langfuse as the `Chatbot Instructions` prompt; the `production` label is the one used.
 
 ## Technologies and choices
 

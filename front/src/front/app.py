@@ -3,8 +3,8 @@ import os
 import requests
 import streamlit as st
 
-from front.ai_calls import speech_to_text, stream_answer, text_to_speech
-from front.utils import add_message, init_session, reset_conversation
+from front.ai_calls import speech_to_text, text_to_speech
+from front.utils import add_message, init_session, reset_conversation, stream_answer
 
 DEFAULT_BACK_URL = os.environ.get("CONVERSATION_ENGINE_URL", "http://localhost:8000")
 
