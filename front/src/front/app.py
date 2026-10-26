@@ -3,7 +3,11 @@ import os
 import requests
 import streamlit as st
 
-from front.ai_calls import speech_to_text, text_to_speech
+from front.ai_calls import (
+    get_recording_storage_error,
+    speech_to_text,
+    text_to_speech,
+)
 from front.utils import add_message, init_session, reset_conversation, stream_answer
 
 DEFAULT_BACK_URL = os.environ.get("CONVERSATION_ENGINE_URL", "http://localhost:8000")
@@ -35,6 +39,22 @@ def ask_teacher(back_url: str) -> None:
     add_message("assistant", answer, audio)
 
 
+def warn_if_recording_storage_unreachable(back_url: str) -> None:
+    """Check the recordings storage once per conversation and warn while it is down."""
+    if st.session_state.get("storage_checked_session") != st.session_state.session_id:
+        try:
+            st.session_state.storage_error = get_recording_storage_error(back_url)
+        except requests.RequestException:
+            st.session_state.storage_error = None
+        st.session_state.storage_checked_session = st.session_state.session_id
+
+    if st.session_state.storage_error:
+        st.warning(
+            "Les enregistrements ne seront pas sauvegardés, le S3 est inaccessible : "
+            f"{st.session_state.storage_error}"
+        )
+
+
 st.set_page_config(page_title="Language teacher", page_icon="🇮🇹")
 st.title("🇮🇹 Language teacher")
 
@@ -45,6 +65,7 @@ with st.sidebar:
         st.rerun()
 
 init_session()
+warn_if_recording_storage_unreachable(back_url)
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -58,7 +79,9 @@ prompt = None
 if submission and submission.audio:
     try:
         with st.spinner("Transcription..."):
-            prompt = speech_to_text(back_url, submission.audio)
+            prompt = speech_to_text(
+                back_url, submission.audio, st.session_state.session_id
+            )
     except requests.RequestException as error:
         st.error(f"Transcription impossible : {error}")
 elif submission:

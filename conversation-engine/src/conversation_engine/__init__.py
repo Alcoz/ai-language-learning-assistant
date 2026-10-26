@@ -1,6 +1,8 @@
-from typing import Literal
+import io
+import os
+from typing import Annotated, Literal
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, Form, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
@@ -8,9 +10,16 @@ from conversation_engine.api_connection.ollama_connection import (
     generate_answer,
     get_instructions_prompt,
 )
-from conversation_engine.speech.stt import transcribe
+from conversation_engine.speech.stt import VERBATIM_PROMPT, transcribe
 from conversation_engine.speech.tts import synthesize
+from conversation_engine.storage.recordings import (
+    archive_recording,
+    get_recording_storage_error,
+    is_recording_archive_enabled,
+)
 
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3.5:4b")
+WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "small")
 # Codes used by Whisper (ISO 639-1) and Kokoro (lang_code + voice) for the taught language
 WHISPER_LANGUAGE = "it"
 KOKORO_LANG_CODE = "i"
@@ -56,7 +65,7 @@ def run_server():
 
         return StreamingResponse(
             generate_answer(
-                model="qwen3.5:4b",
+                model=OLLAMA_MODEL,
                 messages=messages,
                 session_id=query_content.session_id,
                 prompt=instructions_prompt,
@@ -65,8 +74,42 @@ def run_server():
         )
 
     @app.post("/stt")
-    def speech_to_text(audio: UploadFile):
-        return {"text": transcribe(audio.file, language=WHISPER_LANGUAGE)}
+    def speech_to_text(
+        audio: UploadFile,
+        background_tasks: BackgroundTasks,
+        session_id: Annotated[str | None, Form()] = None,
+    ):
+        audio_bytes = audio.file.read()
+        text = transcribe(
+            io.BytesIO(audio_bytes),
+            language=WHISPER_LANGUAGE,
+            model_size=WHISPER_MODEL_SIZE,
+        )
+
+        if is_recording_archive_enabled():
+            background_tasks.add_task(
+                archive_recording,
+                audio=audio_bytes,
+                filename=audio.filename,
+                content_type=audio.content_type,
+                transcription=text,
+                stt_config={
+                    "engine": "faster-whisper",
+                    "model_size": WHISPER_MODEL_SIZE,
+                    "language": WHISPER_LANGUAGE,
+                    "initial_prompt": VERBATIM_PROMPT,
+                },
+                session_id=session_id,
+            )
+
+        return {"text": text}
+
+    @app.get("/recordings/status")
+    def recordings_status():
+        if not is_recording_archive_enabled():
+            return {"enabled": False, "error": None}
+
+        return {"enabled": True, "error": get_recording_storage_error()}
 
     @app.post("/tts")
     def text_to_speech(speech: Speech):

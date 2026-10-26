@@ -47,7 +47,7 @@ The teacher's instructions are versioned in Langfuse as the `Chatbot Instruction
 ## Requirements
 
 - Python 3.12 and [uv](https://docs.astral.sh/uv/getting-started/installation/)
-- [Ollama](https://ollama.com/download) running, with the model pulled:
+- [Ollama](https://ollama.com/download) running, with the model pulled (`qwen3.5:4b` by default, set by `OLLAMA_MODEL`):
 
   ```bash
   ollama pull qwen3.5:4b
@@ -65,13 +65,13 @@ uv sync
 uv run pre-commit install
 ```
 
-Create a `.env` file at the repository root:
+Create a `.env` file at the repository root from the template, and fill in the Langfuse keys:
 
-```dotenv
-LANGFUSE_PUBLIC_KEY=pk-lf-...
-LANGFUSE_SECRET_KEY=sk-lf-...
-LANGFUSE_BASE_URL=http://localhost:3000
+```bash
+cp .env.template .env
 ```
+
+To build the speech-to-text benchmark, set `ARCHIVE_RECORDINGS=true` and the S3 variables: each recording is then stored in the bucket with its transcription and STT configuration, under `raw/<date>/<session_id>/<uuid>.{wav,json}`. Any S3-compatible storage works (MinIO, AWS S3, GCS); the bucket must already exist.
 
 ## Running
 
@@ -87,7 +87,7 @@ Then, in another terminal, start the interface:
 uv run front
 ```
 
-On first launch, the API downloads the Whisper `small` and Kokoro-82M models from Hugging Face.
+On first launch, the API downloads the Whisper model (`WHISPER_MODEL_SIZE`, `small` by default) and Kokoro-82M from Hugging Face.
 
 The API URL defaults to `http://localhost:8000`. It can be changed with the `CONVERSATION_ENGINE_URL` environment variable or in the sidebar.
 
