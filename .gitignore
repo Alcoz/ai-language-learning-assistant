@@ -208,3 +208,7 @@ __marimo__/
 
 
 .DS_Store
+# MLflow
+mlflow.db
+mlruns/
+mlartifacts/

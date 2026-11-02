@@ -50,6 +50,18 @@ def send_object_to_s3(
     )
 
 
+def get_keys_by_suffix_from_s3(s3_client, bucket_name: str, suffix: str) -> list[str]:
+    """List the full keys of the objects of the bucket ending with the suffix."""
+    paginator = s3_client.get_paginator("list_objects_v2")
+
+    return [
+        file["Key"]
+        for page in paginator.paginate(Bucket=bucket_name)
+        for file in page.get("Contents", [])
+        if file["Key"].endswith(suffix)
+    ]
+
+
 def get_folder_content_from_s3(s3_client, bucket_name: str, folder: str) -> list[str]:
     """List the names of the objects stored under a prefix of the bucket."""
     # list_objects_v2 returns at most 1000 keys per call: paginate to get them all

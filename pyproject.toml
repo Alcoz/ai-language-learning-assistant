@@ -13,6 +13,7 @@ dependencies = [
 members = [
     "conversation-engine",
     "front",
+    "model-evaluation",
 ]
 
 [tool.uv.sources]

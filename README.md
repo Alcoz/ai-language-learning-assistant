@@ -58,7 +58,7 @@ The teacher's instructions are versioned in Langfuse as the `Chatbot Instruction
 ## Installation
 
 ```bash
-uv sync
+uv sync --all-packages
 ```
 
 ```bash
@@ -77,6 +77,18 @@ After a labeling session in Label Studio, set the `LABEL_STUDIO_*` variables and
 
 ```bash
 make export-labels
+```
+
+To compare the Whisper models on these labels, set `MLFLOW_TRACKING_URI`, start the MLflow server with `make mlflow-run`, then run the command below. Each model gets one run with its WER, CER, speed and transcriptions.
+
+```bash
+make evaluate-stt
+```
+
+The dataset is stored once in the bucket, as `datasets/stt/<digest>.json`, with its metadata. Each run references it, and a dataset can be evaluated again from its digest:
+
+```bash
+make evaluate-stt DATASET=<digest>
 ```
 
 ## Running
