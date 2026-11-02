@@ -41,12 +41,9 @@ def get_recording_storage_error() -> str | None:
     return None
 
 
-def build_recording_key(session_id: str | None, recorded_at: datetime) -> str:
-    """Build the key, without extension, grouping recordings by day and session."""
-    return (
-        f"{RAW_PREFIX}/{recorded_at:%Y-%m-%d}/{session_id or 'no-session'}"
-        f"/{uuid.uuid4()}"
-    )
+def build_recording_key(recorded_at: datetime) -> str:
+    """Build the key, without extension, with one folder per day and per request."""
+    return f"{RAW_PREFIX}/{recorded_at:%Y-%m-%d}/{uuid.uuid4()}/recording"
 
 
 def archive_recording(
@@ -59,7 +56,7 @@ def archive_recording(
 ) -> None:
     """Store the raw audio and its metadata, without failing the student's request."""
     recorded_at = datetime.now(UTC)
-    key = build_recording_key(session_id, recorded_at)
+    key = build_recording_key(recorded_at)
     extension = PurePath(filename or "").suffix or ".wav"
 
     try:

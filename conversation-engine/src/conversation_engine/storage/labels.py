@@ -44,6 +44,7 @@ def export_labels() -> int:
         label = {
             "task_id": task.id,
             "audio_key": audio_key,
+            "session_id": task.data["session_id"],
             "transcription": task.data["transcription"],
             "annotations": annotations,
         }

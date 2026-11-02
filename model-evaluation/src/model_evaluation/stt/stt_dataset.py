@@ -2,7 +2,6 @@ import hashlib
 import io
 import json
 from datetime import UTC, datetime
-from pathlib import PurePath
 
 import pandas as pd
 import soundfile
@@ -49,6 +48,7 @@ def load_recordings(s3_client, bucket: str) -> tuple[pd.DataFrame, dict[str, byt
         rows.append(
             {
                 "audio_key": audio_key,
+                "session_id": label["session_id"],
                 "reference": reference,
                 "duration_seconds": soundfile.info(
                     io.BytesIO(audios[audio_key])
@@ -75,13 +75,11 @@ def get_dataset_key(digest: str) -> str:
 
 def describe_dataset(dataset: pd.DataFrame) -> dict:
     """Compute the metadata used to compare datasets."""
-    sessions = dataset["audio_key"].map(lambda key: PurePath(key).parent.name)
-
     return {
         "digest": compute_digest(dataset),
         "created_at": datetime.now(UTC).isoformat(),
         "size": len(dataset),
-        "num_sessions": sessions.nunique(),
+        "num_sessions": dataset["session_id"].nunique(),
         "total_duration_seconds": float(dataset["duration_seconds"].sum()),
         "last_labeled_at": dataset["labeled_at"].max(),
     }
