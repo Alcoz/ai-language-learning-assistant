@@ -73,6 +73,12 @@ cp .env.template .env
 
 To build the speech-to-text benchmark, set `ARCHIVE_RECORDINGS=true` and the S3 variables: each recording is then stored in the bucket with its transcription and STT configuration, under `raw/<date>/<session_id>/<uuid>.{wav,json}`. Any S3-compatible storage works (MinIO, AWS S3, GCS); the bucket must already exist.
 
+After a labeling session in Label Studio, set the `LABEL_STUDIO_*` variables and write each label next to its audio, as `<uuid>.label.json`:
+
+```bash
+make export-labels
+```
+
 ## Running
 
 From the repository root, start the API first, on port 8000:

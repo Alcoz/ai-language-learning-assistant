@@ -50,3 +50,4 @@ dev = [
 
 [tool.ruff.lint.per-file-ignores]
 "conversation-engine/run_server.py" = ["E402"]
+"conversation-engine/export_labels.py" = ["E402"]

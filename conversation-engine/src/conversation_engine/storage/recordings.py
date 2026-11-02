@@ -61,18 +61,19 @@ def archive_recording(
     recorded_at = datetime.now(UTC)
     key = build_recording_key(session_id, recorded_at)
     extension = PurePath(filename or "").suffix or ".wav"
-    metadata = {
-        "audio_key": f"{key}{extension}",
-        "recorded_at": recorded_at.isoformat(),
-        "session_id": session_id,
-        "original_filename": filename,
-        "content_type": content_type,
-        "transcription": transcription,
-        "stt": stt_config,
-    }
 
     try:
         bucket = os.environ["BUCKET_NAME"]
+        metadata = {
+            "audio": f"s3://{bucket}/{key}{extension}",
+            "audio_key": f"{key}{extension}",
+            "recorded_at": recorded_at.isoformat(),
+            "session_id": session_id,
+            "original_filename": filename,
+            "content_type": content_type,
+            "transcription": transcription,
+            "stt": stt_config,
+        }
         send_object_to_s3(
             get_s3_client(),
             bucket,
