@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Any
 
 from conversation_engine import TEACHING_PROFILE
+from conversation_engine.api_connection.ollama_connection import get_instructions_prompt
 from langfuse import Evaluation, Langfuse
 from langfuse.experiment import ExperimentItemResult
 from ollama import Client
@@ -54,11 +55,16 @@ def copy_generations_to_dataset(langfuse: Langfuse) -> None:
         )
 
 
-def make_teacher_task(model: str, progress_bar: tqdm):
+def make_teacher_task(model: str, instructions: str, progress_bar: tqdm):
     """Build the task that makes the given model answer a conversation of the dataset."""
 
     def answer_conversation(*, item: Any, **kwargs) -> dict[str, Any]:
-        response = ollama_client.chat(model=model, messages=item.input, think=False)
+        history = [message for message in item.input if message["role"] != "system"]
+        response = ollama_client.chat(
+            model=model,
+            messages=[{"role": "system", "content": instructions}, *history],
+            think=False,
+        )
         generation_seconds = (response.total_duration - response.load_duration) / 1e9
         progress_bar.update()
 
@@ -71,11 +77,12 @@ def make_teacher_task(model: str, progress_bar: tqdm):
     return answer_conversation
 
 
-def score_speed(*, output: dict[str, Any], **kwargs) -> list[Evaluation]:
-    """Turn the speed measured by Ollama into scores."""
+def score_speed_and_length(*, output: dict[str, Any], **kwargs) -> list[Evaluation]:
+    """Turn the speed measured by Ollama and the length of the answer into scores."""
     return [
         Evaluation(name="generation_seconds", value=output["generation_seconds"]),
         Evaluation(name="tokens_per_second", value=output["tokens_per_second"]),
+        Evaluation(name="answer_words", value=len(output["answer"].split())),
     ]
 
 
@@ -84,18 +91,24 @@ def answer_with_every_model(
 ) -> list[ExperimentItemResult]:
     """First phase: make each model answer every conversation, one model loaded at a time."""
     started_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    instructions_prompt = get_instructions_prompt()
+    instructions = instructions_prompt.compile(**TEACHING_PROFILE)
     item_results = []
 
     for model in models:
         with tqdm(total=len(items), desc=model, unit="answer") as progress_bar:
             result = langfuse.run_experiment(
                 name=EXPERIMENT_NAME,
-                run_name=f"{model} {started_at}",
+                run_name=f"{model} prompt v{instructions_prompt.version} {started_at}",
                 data=items,
-                task=make_teacher_task(model, progress_bar),
-                evaluators=[score_speed],
+                task=make_teacher_task(model, instructions, progress_bar),
+                evaluators=[score_speed_and_length],
                 max_concurrency=1,
-                metadata={"teacher_model": model, "judge_model": judge_model},
+                metadata={
+                    "teacher_model": model,
+                    "judge_model": judge_model,
+                    "prompt_version": str(instructions_prompt.version),
+                },
             )
         item_results.extend(result.item_results)
 
