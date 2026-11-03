@@ -1,7 +1,7 @@
 [project]
 name = "model-evaluation"
 version = "0.1.0"
-description = "Compare the models of the assistant with MLflow"
+description = "Evaluate the models of the assistant with MLflow and Langfuse"
 readme = "README.md"
 authors = [
     { name = "Baptiste Darnala", email = "darnala.b@gmail.com" }
@@ -10,13 +10,18 @@ requires-python = ">=3.12"
 dependencies = [
     "conversation-engine",
     "jiwer>=4.0.0",
+    "langfuse>=5.0.4",
     "mlflow>=3.17.2",
+    "ollama>=0.6.3",
     "python-dotenv>=1.2.4",
     "soundfile>=0.14.0",
+    "tqdm>=4.70.1",
 ]
 
 [project.scripts]
 evaluate-stt = "model_evaluation.stt.evaluate_stt:main"
+evaluate-llm = "model_evaluation.llm.evaluate_llm:main"
+benchmark-llm = "model_evaluation.llm.benchmark_llm:main"
 
 [build-system]
 requires = ["uv_build>=0.10.12,<0.11.0"]

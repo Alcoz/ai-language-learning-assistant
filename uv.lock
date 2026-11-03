@@ -3441,18 +3441,24 @@ source = { editable = "model-evaluation" }
 dependencies = [
     { name = "conversation-engine" },
     { name = "jiwer" },
+    { name = "langfuse" },
     { name = "mlflow" },
+    { name = "ollama" },
     { name = "python-dotenv" },
     { name = "soundfile" },
+    { name = "tqdm" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "conversation-engine", editable = "conversation-engine" },
     { name = "jiwer", specifier = ">=4.0.0" },
+    { name = "langfuse", specifier = ">=5.0.4" },
     { name = "mlflow", specifier = ">=3.17.2" },
+    { name = "ollama", specifier = ">=0.6.3" },
     { name = "python-dotenv", specifier = ">=1.2.4" },
     { name = "soundfile", specifier = ">=0.14.0" },
+    { name = "tqdm", specifier = ">=4.70.1" },
 ]
 
 [[package]]

@@ -24,6 +24,11 @@ WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "small")
 WHISPER_LANGUAGE = "it"
 KOKORO_LANG_CODE = "i"
 KOKORO_VOICE = "if_sara"
+TEACHING_PROFILE = {
+    "mother_tongue": "french",
+    "language": "italian",
+    "language_level": "A1",
+}
 
 
 class Message(BaseModel):
@@ -53,11 +58,7 @@ def run_server():
     @app.post("/query")
     async def query(query_content: Query):
         instructions_prompt = get_instructions_prompt()
-        system_prompt = instructions_prompt.compile(
-            mother_tongue="french",
-            language="italian",
-            language_level="A1",
-        )
+        system_prompt = instructions_prompt.compile(**TEACHING_PROFILE)
         messages = [
             {"role": "system", "content": system_prompt},
             *(message.model_dump() for message in query_content.messages),
@@ -69,6 +70,7 @@ def run_server():
                 messages=messages,
                 session_id=query_content.session_id,
                 prompt=instructions_prompt,
+                metadata=TEACHING_PROFILE,
             ),
             media_type="text/plain",
         )

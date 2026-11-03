@@ -9,3 +9,9 @@ export-labels:
 
 evaluate-stt:
 	uv run --package model-evaluation evaluate-stt $(if $(DATASET),--dataset $(DATASET))
+
+evaluate-llm:
+	uv run --package model-evaluation evaluate-llm
+
+benchmark-llm:
+	caffeinate -i uv run --package model-evaluation benchmark-llm

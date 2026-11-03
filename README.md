@@ -91,6 +91,18 @@ The dataset is stored once in the bucket, as `datasets/stt/<digest>.json`, with 
 make evaluate-stt DATASET=<digest>
 ```
 
+To score the teacher's answers in Langfuse on their coherence, vocabulary level and sentence complexity, pull the judge model set by `EVALUATION_OLLAMA_MODEL` with Ollama, then run:
+
+```bash
+make evaluate-llm
+```
+
+To compare several teacher models on the traced conversations, with their speed and the same scores, pull the models listed in `TEACHER_MODELS` and run:
+
+```bash
+make benchmark-llm
+```
+
 ## Running
 
 From the repository root, start the API first, on port 8000:

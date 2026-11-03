@@ -20,6 +20,7 @@ def start_generation_trace(
     messages: list[dict[str, str]],
     session_id: str | None,
     prompt: TextPromptClient | None,
+    metadata: dict[str, str] | None,
 ) -> LangfuseGeneration:
     """Open a Langfuse generation for an Ollama chat call, attached to the given session."""
     with propagate_attributes(session_id=session_id):
@@ -29,6 +30,7 @@ def start_generation_trace(
             model=model,
             model_parameters={"think": False},
             input=messages,
+            metadata=metadata,
             prompt=prompt,
         )
 
@@ -38,9 +40,10 @@ async def generate_answer(
     messages: list[dict[str, str]],
     session_id: str | None = None,
     prompt: TextPromptClient | None = None,
+    metadata: dict[str, str] | None = None,
 ):
     """Stream the model answer chunk by chunk and record it in Langfuse."""
-    generation = start_generation_trace(model, messages, session_id, prompt)
+    generation = start_generation_trace(model, messages, session_id, prompt, metadata)
     answer_chunks = []
 
     try:
